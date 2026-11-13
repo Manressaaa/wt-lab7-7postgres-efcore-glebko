@@ -13,15 +13,15 @@ var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
 
 if (!string.IsNullOrWhiteSpace(databaseUrl))
 {
-    // Очищаем строку от случайных пробелов и переносов строк
     var cleanUrl = databaseUrl.Trim();
-
     var uri = new Uri(cleanUrl);
     var userInfo = uri.UserInfo.Split(':', 2);
 
-    // Собираем строку для Npgsql
+    // Если Render не передал порт, используем стандартный 5432
+    var port = uri.Port > 0 ? uri.Port.ToString() : "5432";
+
     connectionString = $"Host={uri.Host};" +
-                       $"Port={uri.Port};" +
+                       $"Port={port};" +
                        $"Database={uri.AbsolutePath.TrimStart('/')};" +
                        $"Username={Uri.UnescapeDataString(userInfo[0])};" +
                        $"Password={Uri.UnescapeDataString(userInfo[1])};" +
