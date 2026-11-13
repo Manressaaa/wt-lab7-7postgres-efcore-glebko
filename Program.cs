@@ -7,20 +7,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL");
 
-// Умная настройка для Render
-var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
-if (!string.IsNullOrWhiteSpace(databaseUrl))
+if (string.IsNullOrWhiteSpace(connectionString))
 {
-    var uri = new Uri(databaseUrl);
-    var userInfo = uri.UserInfo.Split(':', 2);
-    connectionString = $"Host={uri.Host};" +
-                       $"Port={uri.Port};" +
-                       $"Database={uri.AbsolutePath.TrimStart('/')};" +
-                       $"Username={Uri.UnescapeDataString(userInfo[0])};" +
-                       $"Password={Uri.UnescapeDataString(userInfo[1])};" +
-                       "SSL Mode=Disable";
+    connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 }
 
 builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
