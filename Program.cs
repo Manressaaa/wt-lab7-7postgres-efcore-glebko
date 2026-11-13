@@ -11,14 +11,15 @@ builder.Services.AddSwaggerGen();
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
 
-// Проверяем, запущено ли на Render (там передается DATABASE_URL)
 if (!string.IsNullOrWhiteSpace(databaseUrl))
 {
-    // Render передает строку в формате URL: postgres://user:pass@host:port/db
-    var uri = new Uri(databaseUrl);
+    // Очищаем строку от случайных пробелов и переносов строк
+    var cleanUrl = databaseUrl.Trim();
+
+    var uri = new Uri(cleanUrl);
     var userInfo = uri.UserInfo.Split(':', 2);
 
-    // Собираем правильную строку для Npgsql (EF Core)
+    // Собираем строку для Npgsql
     connectionString = $"Host={uri.Host};" +
                        $"Port={uri.Port};" +
                        $"Database={uri.AbsolutePath.TrimStart('/')};" +
@@ -35,7 +36,7 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.Migrate(); // Создает таблицы, если их нет
+    db.Database.Migrate();
 }
 
 app.UseSwagger();
