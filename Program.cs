@@ -1,61 +1,76 @@
-using wt_lab6_6minimalapi_glebko.Data;
-using wt_lab6_6minimalapi_glebko.Models;
+using Microsoft.EntityFrameworkCore;
+using wt_lab7_7postgres_efcore_glebko.Data;
+using wt_lab7_7postgres_efcore_glebko.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+// Умная настройка для Render
+var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+if (!string.IsNullOrWhiteSpace(databaseUrl))
+{
+    var uri = new Uri(databaseUrl);
+    var userInfo = uri.UserInfo.Split(':', 2);
+    connectionString = $"Host={uri.Host};" +
+                       $"Port={uri.Port};" +
+                       $"Database={uri.AbsolutePath.TrimStart('/')};" +
+                       $"Username={Uri.UnescapeDataString(userInfo[0])};" +
+                       $"Password={Uri.UnescapeDataString(userInfo[1])};" +
+                       "SSL Mode=Disable";
+}
+
+builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
+
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.Migrate();
+}
 
 app.UseSwagger();
 app.UseSwaggerUI();
-app.MapGet("/", () => "всё ок");
-//список + Фильтрация (search)
-app.MapGet("/api/flights", (string? search) =>
-{
-    var flights = FlightStore.Flights.AsEnumerable();
 
+
+app.MapGet("/", () => "Minimal API работает! Перейдите на /swagger для тестирования.");
+app.MapGet("/api/info", () => new { Application = "Web Technologies", Technology = "ASP.NET Core Minimal API", Version = "1.0" });
+
+app.MapGet("/api/flights", async (AppDbContext db) => await db.Flights.ToListAsync());
+
+app.MapGet("/api/flights/search", async (string? search, AppDbContext db) =>
+{
+    var query = db.Flights.AsQueryable();
     if (!string.IsNullOrWhiteSpace(search))
     {
-        // Ищем совпадения по городам (без учета регистра)
-        flights = flights.Where(x => x.gorod_vilet.Contains(search, StringComparison.OrdinalIgnoreCase)
-                                  || x.gorod_prilet.Contains(search, StringComparison.OrdinalIgnoreCase));
+        query = query.Where(x => x.gorod_vilet.ToLower().Contains(search.ToLower())
+                              || x.gorod_prilet.ToLower().Contains(search.ToLower()));
     }
-    return Results.Ok(flights);
+    return Results.Ok(await query.ToListAsync());
 });
 
-// номер рейса (ID) + 404 если нет
-app.MapGet("/api/flights/{id}", (int id) =>
+app.MapGet("/api/flights/{id}", async (int id, AppDbContext db) =>
 {
-    var flight = FlightStore.Flights.FirstOrDefault(x => x.nomer_reisa == id);
-    if (flight == null)
-        return Results.NotFound();
-
-    return Results.Ok(flight);
+    var flight = await db.Flights.FirstOrDefaultAsync(x => x.nomer_reisa == id);
+    return flight == null ? Results.NotFound() : Results.Ok(flight);
 });
 
-app.MapPost("/api/flights", (Flight flight) =>
+app.MapPost("/api/flights", async (Flight flight, AppDbContext db) =>
 {
-    // Защита от некорректных данных
-    if (string.IsNullOrWhiteSpace(flight.gorod_vilet))
-        return Results.BadRequest("Укажите город вылета");
-
-    // Автоматическая генерация ID
-    flight.nomer_reisa = FlightStore.Flights.Count == 0 ? 1 : FlightStore.Flights.Max(x => x.nomer_reisa) + 1;
-
-    FlightStore.Flights.Add(flight);
-
+    db.Flights.Add(flight);
+    await db.SaveChangesAsync();
     return Results.Created($"/api/flights/{flight.nomer_reisa}", flight);
 });
 
-app.MapPut("/api/flights/{id}", (int id, Flight updatedFlight) =>
+app.MapPut("/api/flights/{id}", async (int id, Flight updatedFlight, AppDbContext db) =>
 {
-    var flight = FlightStore.Flights.FirstOrDefault(x => x.nomer_reisa == id);
-    if (flight == null)
-        return Results.NotFound();
+    var flight = await db.Flights.FirstOrDefaultAsync(x => x.nomer_reisa == id);
+    if (flight == null) return Results.NotFound();
 
-    // Обновляем поля
     flight.gorod_vilet = updatedFlight.gorod_vilet;
     flight.gorod_prilet = updatedFlight.gorod_prilet;
     flight.vremya_vileta = updatedFlight.vremya_vileta;
@@ -63,18 +78,38 @@ app.MapPut("/api/flights/{id}", (int id, Flight updatedFlight) =>
     flight.mesta = updatedFlight.mesta;
     flight.dostupno = updatedFlight.dostupno;
 
+    await db.SaveChangesAsync();
     return Results.Ok(flight);
 });
 
-app.MapDelete("/api/flights/{id}", (int id) =>
+app.MapDelete("/api/flights/{id}", async (int id, AppDbContext db) =>
 {
-    var flight = FlightStore.Flights.FirstOrDefault(x => x.nomer_reisa == id);
-    if (flight == null)
-        return Results.NotFound();
+    var flight = await db.Flights.FirstOrDefaultAsync(x => x.nomer_reisa == id);
+    if (flight == null) return Results.NotFound();
 
-    FlightStore.Flights.Remove(flight);
-
+    db.Flights.Remove(flight);
+    await db.SaveChangesAsync();
     return Results.NoContent();
+});
+
+// --- ШАГ 19: Дополнительные LINQ-запросы ---
+
+// LINQ 1: Фильтрация — получить только рейсы дороже 200
+app.MapGet("/api/flights/linq/filter", async (AppDbContext db) =>
+{
+    var flights = await db.Flights
+        .Where(x => x.cena > 200)
+        .ToListAsync();
+    return Results.Ok(flights);
+});
+
+// LINQ 2: Сортировка — получить рейсы, отсортированные по цене (от дешевых к дорогим)
+app.MapGet("/api/flights/linq/sort", async (AppDbContext db) =>
+{
+    var flights = await db.Flights
+        .OrderBy(x => x.cena)
+        .ToListAsync();
+    return Results.Ok(flights);
 });
 
 var port = Environment.GetEnvironmentVariable("PORT") ?? "10000";
