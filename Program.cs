@@ -7,26 +7,43 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL");
+// --- НАСТРОЙКА ПОДКЛЮЧЕНИЯ ---
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
 
-if (string.IsNullOrWhiteSpace(connectionString))
+// Проверяем, запущено ли на Render (там передается DATABASE_URL)
+if (!string.IsNullOrWhiteSpace(databaseUrl))
 {
-    connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    // Render передает строку в формате URL: postgres://user:pass@host:port/db
+    var uri = new Uri(databaseUrl);
+    var userInfo = uri.UserInfo.Split(':', 2);
+
+    // Собираем правильную строку для Npgsql (EF Core)
+    connectionString = $"Host={uri.Host};" +
+                       $"Port={uri.Port};" +
+                       $"Database={uri.AbsolutePath.TrimStart('/')};" +
+                       $"Username={Uri.UnescapeDataString(userInfo[0])};" +
+                       $"Password={Uri.UnescapeDataString(userInfo[1])};" +
+                       "SSL Mode=Require;Trust Server Certificate=true";
 }
 
 builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
 
 var app = builder.Build();
 
+// --- АВТОМАТИЧЕСКОЕ ПРИМЕНЕНИЕ МИГРАЦИЙ ---
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.Migrate();
+    db.Database.Migrate(); // Создает таблицы, если их нет
 }
 
 app.UseSwagger();
 app.UseSwaggerUI();
 
+// ==========================================
+// API ЭНДПОИНТЫ
+// ==========================================
 
 app.MapGet("/", () => "Minimal API работает! Перейдите на /swagger для тестирования.");
 app.MapGet("/api/info", () => new { Application = "Web Technologies", Technology = "ASP.NET Core Minimal API", Version = "1.0" });
@@ -83,25 +100,6 @@ app.MapDelete("/api/flights/{id}", async (int id, AppDbContext db) =>
     return Results.NoContent();
 });
 
-// --- ШАГ 19: Дополнительные LINQ-запросы ---
-
-// LINQ 1: Фильтрация — получить только рейсы дороже 200
-app.MapGet("/api/flights/linq/filter", async (AppDbContext db) =>
-{
-    var flights = await db.Flights
-        .Where(x => x.cena > 200)
-        .ToListAsync();
-    return Results.Ok(flights);
-});
-
-// LINQ 2: Сортировка — получить рейсы, отсортированные по цене (от дешевых к дорогим)
-app.MapGet("/api/flights/linq/sort", async (AppDbContext db) =>
-{
-    var flights = await db.Flights
-        .OrderBy(x => x.cena)
-        .ToListAsync();
-    return Results.Ok(flights);
-});
-
+// --- ЗАПУСК НА RENDER ---
 var port = Environment.GetEnvironmentVariable("PORT") ?? "10000";
 app.Run($"http://0.0.0.0:{port}");
