@@ -18,10 +18,10 @@ if (!string.IsNullOrWhiteSpace(databaseUrl))
     var userInfo = uri.UserInfo.Split(':', 2);
 
     // Если Render не передал порт, используем стандартный 5432
-    var port = uri.Port > 0 ? uri.Port.ToString() : "5432";
+    var dbPort = uri.Port > 0 ? uri.Port.ToString() : "5432";
 
     connectionString = $"Host={uri.Host};" +
-                       $"Port={port};" +
+                       $"Port={dbPort};" +
                        $"Database={uri.AbsolutePath.TrimStart('/')};" +
                        $"Username={Uri.UnescapeDataString(userInfo[0])};" +
                        $"Password={Uri.UnescapeDataString(userInfo[1])};" +
@@ -102,5 +102,5 @@ app.MapDelete("/api/flights/{id}", async (int id, AppDbContext db) =>
 });
 
 // --- ЗАПУСК НА RENDER ---
-var port = Environment.GetEnvironmentVariable("PORT") ?? "10000";
-app.Run($"http://0.0.0.0:{port}");
+var appPort = Environment.GetEnvironmentVariable("PORT") ?? "10000";
+app.Run($"http://0.0.0.0:{appPort}");
