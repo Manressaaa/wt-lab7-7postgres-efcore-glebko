@@ -9,10 +9,10 @@ using wt_lab7_7postgres_efcore_glebko.Data;
 
 #nullable disable
 
-namespace wt_lab6_6minimalapi_glebko.Migrations
+namespace wt_lab7_7postgres_efcore_glebko.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20261123062137_InitialCreate")]
+    [Migration("20261123062858_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />

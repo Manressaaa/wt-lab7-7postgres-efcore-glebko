@@ -6,7 +6,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
 
-namespace wt_lab7_7postgres_efcore_glebko.Migrations // ВАЖНО: имя проекта изменено на wt_lab7
+namespace wt_lab7_7postgres_efcore_glebko.Migrations // ИСПРАВЛЕНО: имя проекта
 {
     /// <inheritdoc />
     public partial class InitialCreate : Migration
