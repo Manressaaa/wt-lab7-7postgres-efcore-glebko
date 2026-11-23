@@ -30,6 +30,9 @@ namespace wt_lab7_7postgres_efcore_glebko.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("nomer_reisa"));
 
+                    b.Property<int>("BaggageWeight")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -67,6 +70,7 @@ namespace wt_lab7_7postgres_efcore_glebko.Migrations
                         new
                         {
                             nomer_reisa = 1,
+                            BaggageWeight = 0,
                             CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Description = "",
                             cena = 250m,
@@ -79,6 +83,7 @@ namespace wt_lab7_7postgres_efcore_glebko.Migrations
                         new
                         {
                             nomer_reisa = 2,
+                            BaggageWeight = 0,
                             CreatedAt = new DateTime(2026, 1, 2, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Description = "",
                             cena = 180m,
@@ -91,6 +96,7 @@ namespace wt_lab7_7postgres_efcore_glebko.Migrations
                         new
                         {
                             nomer_reisa = 3,
+                            BaggageWeight = 0,
                             CreatedAt = new DateTime(2026, 1, 3, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Description = "",
                             cena = 400m,
@@ -103,6 +109,7 @@ namespace wt_lab7_7postgres_efcore_glebko.Migrations
                         new
                         {
                             nomer_reisa = 4,
+                            BaggageWeight = 0,
                             CreatedAt = new DateTime(2026, 1, 4, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Description = "",
                             cena = 300m,
@@ -115,6 +122,7 @@ namespace wt_lab7_7postgres_efcore_glebko.Migrations
                         new
                         {
                             nomer_reisa = 5,
+                            BaggageWeight = 0,
                             CreatedAt = new DateTime(2026, 1, 5, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Description = "",
                             cena = 150m,

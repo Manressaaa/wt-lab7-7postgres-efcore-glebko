@@ -32,4 +32,5 @@ public class Flight
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public string Description { get; set; } = "";
+    public int BaggageWeight { get; set; } // Вес багажа
 }
