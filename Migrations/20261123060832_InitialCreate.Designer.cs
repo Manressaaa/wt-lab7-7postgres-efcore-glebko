@@ -12,8 +12,8 @@ using wt_lab7_7postgres_efcore_glebko.Data;
 namespace wt_lab6_6minimalapi_glebko.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20261123053907_Initialize")]
-    partial class Initialize
+    [Migration("20261123060832_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

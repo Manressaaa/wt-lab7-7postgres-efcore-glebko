@@ -15,7 +15,8 @@ public class Flight
     public string gorod_prilet { get; set; } = "";
 
     [Required(ErrorMessage = "Укажите дату и время вылета")]
-    public DateTime vremya_vileta { get; set; }
+    // ВАЖНО: Указываем, что время всегда должно быть в UTC
+    public DateTime vremya_vileta { get; set; } = DateTime.UtcNow;
 
     [Required(ErrorMessage = "Укажите цену")]
     [Range(0, 1000000, ErrorMessage = "Цена должна быть от 0 до 1 000 000")]
@@ -26,6 +27,8 @@ public class Flight
     public int mesta { get; set; }
 
     public bool dostupno { get; set; }
+
+    // Время создания записи (тоже UTC)
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public string Description { get; set; } = "";
