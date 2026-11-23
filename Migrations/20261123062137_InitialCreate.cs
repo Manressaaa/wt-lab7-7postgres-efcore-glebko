@@ -6,7 +6,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
 
-namespace wt_lab6_6minimalapi_glebko.Migrations
+namespace wt_lab7_7postgres_efcore_glebko.Migrations // ВАЖНО: имя проекта изменено на wt_lab7
 {
     /// <inheritdoc />
     public partial class InitialCreate : Migration
@@ -39,11 +39,12 @@ namespace wt_lab6_6minimalapi_glebko.Migrations
                 columns: new[] { "nomer_reisa", "CreatedAt", "Description", "cena", "dostupno", "gorod_prilet", "gorod_vilet", "mesta", "vremya_vileta" },
                 values: new object[,]
                 {
-                    { 1, new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "", 250m, true, "Горки)", "Нюйорк", 45, new DateTime(2026, 11, 15, 8, 30, 0, 0, DateTimeKind.Unspecified) },
-                    { 2, new DateTime(2026, 1, 2, 0, 0, 0, 0, DateTimeKind.Unspecified), "", 180m, true, "Горки", "Минск", 30, new DateTime(2026, 11, 16, 12, 0, 0, 0, DateTimeKind.Unspecified) },
-                    { 3, new DateTime(2026, 1, 3, 0, 0, 0, 0, DateTimeKind.Unspecified), "", 400m, false, "Горки", "Москва", 0, new DateTime(2026, 11, 17, 22, 15, 0, 0, DateTimeKind.Unspecified) },
-                    { 4, new DateTime(2026, 1, 4, 0, 0, 0, 0, DateTimeKind.Unspecified), "", 300m, true, "Горки", "Гомель", 50, new DateTime(2026, 12, 20, 14, 0, 0, 0, DateTimeKind.Unspecified) },
-                    { 5, new DateTime(2026, 1, 5, 0, 0, 0, 0, DateTimeKind.Unspecified), "", 150m, true, "Горки", "Витебск", 20, new DateTime(2026, 12, 25, 6, 45, 0, 0, DateTimeKind.Unspecified) }
+                    // ИСПРАВЛЕНО: DateTimeKind.Unspecified заменен на DateTimeKind.Utc
+                    { 1, new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "", 250m, true, "Горки)", "Нюйорк", 45, new DateTime(2026, 11, 15, 8, 30, 0, 0, DateTimeKind.Utc) },
+                    { 2, new DateTime(2026, 1, 2, 0, 0, 0, 0, DateTimeKind.Utc), "", 180m, true, "Горки", "Минск", 30, new DateTime(2026, 11, 16, 12, 0, 0, 0, DateTimeKind.Utc) },
+                    { 3, new DateTime(2026, 1, 3, 0, 0, 0, 0, DateTimeKind.Utc), "", 400m, false, "Горки", "Москва", 0, new DateTime(2026, 11, 17, 22, 15, 0, 0, DateTimeKind.Utc) },
+                    { 4, new DateTime(2026, 1, 4, 0, 0, 0, 0, DateTimeKind.Utc), "", 300m, true, "Горки", "Гомель", 50, new DateTime(2026, 12, 20, 14, 0, 0, 0, DateTimeKind.Utc) },
+                    { 5, new DateTime(2026, 1, 5, 0, 0, 0, 0, DateTimeKind.Utc), "", 150m, true, "Горки", "Витебск", 20, new DateTime(2026, 12, 25, 6, 45, 0, 0, DateTimeKind.Utc) }
                 });
         }
 
